@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:salesforce-analytics="http://www.mulesoft.org/schema/mule/salesforce-analytics" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/salesforce-analytics http://www.mulesoft.org/schema/mule/salesforce-analytics/current/mule-salesforce-analytics.xsd">
+
+	<flow name="replay-channel-flow" doc:id="ecb43a29-7f0a-4e2a-922c-5294057ff749" >
+		<salesforce:replay-channel-listener doc:name="Replay channel listener" doc:id="80bb0053-0b83-4e3a-aa67-2564dc8c589d" config-ref="Salesforce_Config" streamingChannel="/data/ContactChangeEvent" replayOption="FROM_REPLAY_ID"/>
+		<logger level="INFO" doc:name="Logger" doc:id="eee63f23-cfa0-4714-a4d6-1498eda0fd7d" message='"REPLAY CHANGE DATA CAPTURE"'/>
+		<ee:transform doc:name="Transform Message" doc:id="4cf23c31-bdbd-4e3d-9633-42afb8224b8a" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+	fields: ["ID", "Name", "Email","FirstName","LastName","HomePhone","MailingCity","MailingCountry","MailingPostalCode"],
+	ids: payload.data.payload.ChangeEventHeader.recordIds
+} as Object {
+	class : "org.mule.extension.salesforce.api.core.RetrieveRequest"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<salesforce:retrieve doc:name="Retrieve" doc:id="5092d381-8bea-4ac6-9578-ac6504bcb3ff" config-ref="Salesforce_Config" type="Contact"/>
+		<logger level="INFO" doc:name="Logger" doc:id="fad3eaf7-f336-4562-96be-932b18f2bf4b" message="#[%dw 2.0&#10;output application/json&#10;---&#10;payload]" />
+	</flow>
+	<flow name="streaming-api-examples-mule4Flow1" doc:id="0ffeb306-44a0-437a-bf47-ff956d3531d8" >
+		<salesforce:subscribe-channel-listener doc:name="Subscribe channel listener" doc:id="0d461abe-bf4d-427b-9aab-2d3b35349e56" config-ref="Salesforce_Config" streamingChannel="/data/ContactChangeEvent"/>
+		<logger level="INFO" doc:name="Logger" doc:id="bd892d1d-3812-41e5-8b7b-33c85806a935" message='#["SUBSCRIBE CHANGE DATA CAPTURE"]'/>
+		<logger level="INFO" doc:name="Logger" doc:id="75ac9e66-05c3-4983-9657-15eb5d42a501" message='#["SUBSCRIBE"]'/>
+	</flow>
+</mule>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="platform-eventsFlow" doc:id="04bfddb5-109f-44f8-bd74-c8a2ca0b9a5d" >
+		<http:listener doc:name="Listener" doc:id="f07447d5-6a1e-4644-8978-c20749ab1e3e" config-ref="HTTP_Listener_config" path="/platform"/>
+		<ee:transform doc:name="Transform Message" doc:id="e88e7228-097d-4e12-83f6-0e0d9a870775" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+[{
+	Status__c: "Not Started"
+}]]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<salesforce:publish-platform-event-message doc:name="Publish platform event message" doc:id="65a409ad-3ebf-4dbc-bb41-9b55a33135a8" config-ref="Salesforce_Config" platformEventName="MuleEvent__e"/>
+		<ee:transform doc:name="Transform Message" doc:id="41968111-3d08-4d8e-ab4c-ca0fffe4b1f2" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>
